@@ -1,0 +1,67 @@
+version: '3.7'
+
+services:
+
+  akaunting:
+    container_name: akaunting
+    image: braceyourself/akaunting
+    build:
+      context: ./
+    volumes:
+      - ./.env:/var/www/html/.env
+      - app:/var/www/html
+    restart: unless-stopped
+    environment:
+      - AKAUNTING_SETUP
+    networks:
+      - default
+    depends_on:
+      - akaunting-db
+
+
+  web:
+    image: nginx
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.akaunting.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.backend=${DOMAIN_NAME}"
+      - "traefik.frontend.rule=Host:${DOMAIN_NAME}"
+      - "traefik.docker.network=traefik"
+    environment:
+      SERVICE_NAME: akaunting
+      SERVICE_PORT: 9000
+    volumes:
+      - ./nginx:/etc/nginx/templates
+      - app:/var/www/html
+    networks:
+      - traefik
+      - default
+    depends_on:
+      - akaunting
+
+
+  db:
+    image: mariadb
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: yes
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - default
+
+  akaunting-update:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --cleanup akaunting
+
+networks:
+  traefik:
+    external: true
+
+volumes:
+  app:
