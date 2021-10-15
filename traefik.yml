@@ -1,0 +1,28 @@
+services:
+  # run this command to enable traefik on your machine:
+  # docker-compose -f traefik.yml up -d
+  traefik:
+    image: traefik:v2.3
+    container_name: traefik
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    restart: always
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - traefik
+
+
+networks:
+  traefik:
+    external: true
