@@ -22,6 +22,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.akaunting.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.akaunting.entrypoints=websecure"
+      - "traefik.http.routers.akaunting.tls.certresolver=resolver"
       - "traefik.backend=${APP_DOMAIN}"
       - "traefik.frontend.rule=Host:${APP_DOMAIN}"
       - "traefik.docker.network=traefik"
